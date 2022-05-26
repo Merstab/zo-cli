@@ -5,20 +5,15 @@ import {
   Margin,
   OrderType,
   State,
-  Zo,
   ZO_DEVNET_STATE_KEY,
   ZO_MAINNET_STATE_KEY,
 } from "@zero_one/client";
 import { CliOrderType, ClusterKind, Config } from "./types";
 import { BN, Wallet } from "@project-serum/anchor";
 import fs from "fs";
-import { Commitment, Connection, Keypair, PublicKey } from "@solana/web3.js";
+import { Commitment, Connection, Keypair } from "@solana/web3.js";
 import { bs58 } from "@project-serum/anchor/dist/cjs/utils/bytes";
 import { simplelog } from "./logger";
-import {
-  Provider,
-  Program,
-} from "@zero_one/client/node_modules/@project-serum/anchor";
 
 export const cliOrderTypeToOrderType = (ordertype: CliOrderType): OrderType => {
   if (ordertype === "limit") {
@@ -67,8 +62,8 @@ export const toPlacePerpOrderOptions = (
 export const toCancelPerpOrderOptions = (
   symbol: string,
   isLong?: boolean,
-  orderId?: number,
-  clientId?: number
+  orderId?: string,
+  clientId?: string
 ) => {
   return {
     symbol,
@@ -174,6 +169,11 @@ export async function loadClient(
     provider.wallet.publicKey
   );
 
+  const perpMarkets = zoState.data.perpMarkets.map((m) => m.symbol);
+  const collaterals = zoState.data.collaterals.map((m) => m.oracleSymbol);
+
+  const symbols = { perpMarkets, collaterals };
+
   simplelog.info(`margin exist: ${marginExist}`);
 
   const [marginKey] = await Margin.getMarginKey(
@@ -191,9 +191,60 @@ export async function loadClient(
     zoCluster,
     provider,
     zoProgram,
+    symbols,
     zoState,
     marginExist,
     marginKey,
     clientMargin,
   };
+}
+
+export async function getOpenOrders(
+  margin: Margin,
+  connection: Connection,
+  symbols: string[]
+) {
+  return await Promise.all(
+    symbols.map(async (marketSymbol) => {
+      const market = await margin.state.getMarketBySymbol(marketSymbol);
+      const openOrdersForMarket = await market.loadOrdersForOwner(
+        connection,
+        margin.control.pubkey
+      );
+      return openOrdersForMarket
+        .map((oo) => {
+          const {
+            controlAddress,
+            clientId,
+            orderId,
+            feeTier,
+            price,
+            size,
+            openOrdersSlot,
+            side,
+          } = oo;
+          return {
+            market: marketSymbol,
+            openOrdersSlot,
+            side,
+            price,
+            size,
+            orderId: orderId.toString(),
+            clientId: clientId.toString(),
+            feeTier,
+            controlAddress: controlAddress.toBase58(),
+          };
+        })
+        .sort((a, b) => b.openOrdersSlot - a.openOrdersSlot);
+    })
+  );
+}
+
+export async function getLastOpenOrderForMarket(
+  margin: Margin,
+  connection: Connection,
+  symbol: string
+) {
+  const orders = await getOpenOrders(margin, connection, [symbol]);
+  return orders[0][0];
 }

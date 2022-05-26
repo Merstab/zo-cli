@@ -1,5 +1,5 @@
 import Liquidator from "./Liquidator";
-import { logger } from "../logger";
+import { simplelog } from "../logger";
 import { loadClient } from "../helpers";
 import { CliLiquidatorArgs, LiquidatorConfig } from "../types";
 
@@ -36,18 +36,18 @@ export async function runLiquidator(liquidatorArgs: CliLiquidatorArgs) {
         rebalanceThreshold,
       };
 
-      logger.info("*** STARTING LIQUIDATOR ***");
+      simplelog.info("*** STARTING LIQUIDATOR ***");
 
       const liquidator = new Liquidator(zoCluster, zoProgram, liqConfig);
       await liquidator.launch();
     } catch (_) {
-      logger.error("*** LIQUIDATOR FAILED ***");
-      logger.error(_);
-      logger.error("*** LIQUIDATOR RESTARTING ***");
+      simplelog.error("*** LIQUIDATOR FAILED ***");
+      simplelog.error(_);
+      simplelog.error("*** LIQUIDATOR RESTARTING ***");
       await runLiquidator(liquidatorArgs);
     }
   } else {
-    logger.error(
+    simplelog.error(
       `No Margin Account found. Create Margin account. zo-cli create-margin [options]`
     );
   }

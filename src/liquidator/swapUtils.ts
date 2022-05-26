@@ -1,3 +1,4 @@
+// ref: https://github.com/01protocol/ts-liquidator/blob/master/src/swapUtils.ts
 import { Connection, PublicKey, SYSVAR_RENT_PUBKEY } from "@solana/web3.js";
 import { Buffer } from "buffer";
 import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
@@ -19,7 +20,7 @@ export class Swapper {
   constructor(
     private readonly state: State,
     private readonly program: Program<Zo>,
-    private readonly margin: Margin,
+    private readonly margin: Margin
   ) {}
 
   async getSwapIx({

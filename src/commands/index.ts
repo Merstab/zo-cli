@@ -6,4 +6,5 @@ export { cliPlacePerpOrder } from "./placePerpOrder";
 export { cliPositions } from "./positions";
 export { cliSettleFunds } from "./settleFunds";
 export { cliWithdraw } from "./withdraw";
-export { cliListSymbols } from "./listSymbols";
+export { cliZoData } from "./zodata";
+export { cliOpenOrders } from "./openOrders";

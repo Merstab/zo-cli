@@ -23,7 +23,7 @@ export const cliSettleFunds = async ({
       simplelog.info(`Settling funds for ${symbol} market...`);
       const tx = await userMargin.settleFunds(symbol);
       simplelog.info(
-        `Settle Funds. \nTransaction Id: ${tx} \nExplorer: ${getTxString(
+        `Settle Funds. \n\nTransaction Id: ${tx} \n\nExplorer: ${getTxString(
           tx,
           zoCluster
         )}`

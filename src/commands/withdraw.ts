@@ -30,7 +30,7 @@ export const cliWithdraw = async ({
       const tx = await userMargin.withdraw(collateralMint, size, allowBorrow);
 
       simplelog.info(
-        `Withdrawn ${size} ${token} from vault. \nTransaction Id: ${tx} \nExplorer: ${getTxString(
+        `Withdrawn ${size} ${token} from vault. \n\nTransaction Id: ${tx} \n\nExplorer: ${getTxString(
           tx,
           zoCluster
         )}`

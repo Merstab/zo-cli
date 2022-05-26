@@ -11,6 +11,7 @@ import {
   cliSettleFunds,
   cliWithdraw,
   runLiquidator,
+  cliZoData,
   setLevel,
   CliBalancesOptions,
   CliCancelPerpOrderOptions,
@@ -19,10 +20,11 @@ import {
   CliPlacePerpOrderOptions,
   CliPositionsOptions,
   CliSettleFundsOptions,
-  CliListSymbolsArg,
   CliWIthdrawOptions,
-  cliListSymbols,
+  CliZoDataArg,
 } from "../";
+import { cliOpenOrders } from "../commands";
+import { CliOpenOrdersOptions } from "../types";
 
 yargs.version("0.1.0");
 
@@ -65,6 +67,7 @@ yargs.command({
     },
   },
   handler: (argv: CliBalancesOptions) => {
+    // console.log("argv:", argv);
     const { loglevel, ...args } = argv;
     setLevel(loglevel);
     cliCreateMargin({ ...args });
@@ -102,7 +105,7 @@ yargs.command({
     },
     symbol: {
       describe: "market symbol e.g BTC-PERP, SOL-PERP, SOL-SQUARE",
-      // alias: "",
+      alias: "S",
       type: "string",
       demandOption: true,
     },
@@ -114,7 +117,7 @@ yargs.command({
     },
     isLong: {
       describe: "long: true, short: false",
-      // alias: "",
+      alias: "long",
       type: "boolean",
       demandOption: true,
     },
@@ -155,6 +158,7 @@ yargs.command({
     },
   },
   handler: (argv: CliPlacePerpOrderOptions) => {
+    // console.log("argv:", argv);
     const { loglevel, ...args } = argv;
     setLevel(loglevel);
     cliPlacePerpOrder({ ...args });
@@ -193,26 +197,26 @@ yargs.command({
     },
     symbol: {
       describe: "market symbol e.g BTC-PERP, SOL-PERP, SOL-SQUARE",
-      // alias: "",
+      alias: "S",
       type: "string",
       demandOption: true,
     },
     orderId: {
       describe: "order ID",
       alias: "o",
-      type: "number",
+      type: "string",
       demandOption: true,
     },
     isLong: {
       describe: "long order: true, short order: false",
-      // alias: "",
+      alias: "long",
       type: "boolean",
       demandOption: true,
-      choices: ["true", "false"],
+      choices: [true, false],
     },
     clientId: {
       describe: "clientId",
-      type: "number",
+      type: "string",
     },
     loglevel: {
       describe: "log level",
@@ -222,6 +226,7 @@ yargs.command({
     },
   },
   handler: (argv: CliCancelPerpOrderOptions) => {
+    // console.log("argv:", argv);
     const { loglevel, ...args } = argv;
     setLevel(loglevel);
     cliCancelPerpOrder({ ...args });
@@ -259,7 +264,7 @@ yargs.command({
     },
     token: {
       describe: "collateral symbol e.g SOL, USDC ",
-      // alias: "",
+      alias: "S",
       type: "string",
       demandOption: true,
     },
@@ -271,10 +276,10 @@ yargs.command({
     },
     repayOnly: {
       describe: "repay",
-      // alias: "",
+      alias: "repayonly",
       type: "boolean",
       demandOption: true,
-      choices: ["true", "false"],
+      choices: [true, false],
     },
     tokenAccount: {
       describe: "token account to transfer tokens from",
@@ -288,6 +293,7 @@ yargs.command({
     },
   },
   handler: (argv: CliDepositOptions) => {
+    // console.log("argv:", argv);
     const { loglevel, ...args } = argv;
     setLevel(loglevel);
     cliDeposit({ ...args });
@@ -326,7 +332,7 @@ yargs.command({
     },
     token: {
       describe: "collateral symbol e.g SOL, BTC",
-      // alias: "",
+      alias: "S",
       type: "string",
       demandOption: true,
     },
@@ -338,13 +344,13 @@ yargs.command({
     },
     allowBorrow: {
       describe: "allow borrow",
-      // alias: "",
+      alias: "allowborrow",
       type: "boolean",
       demandOption: true,
-      choices: ["true", "false"],
+      choices: [true, false],
     },
     tokenAccount: {
-      describe: "token account to transfer tokens from",
+      describe: "token account to deposit tokens to",
       type: "string",
     },
     loglevel: {
@@ -355,6 +361,7 @@ yargs.command({
     },
   },
   handler: (argv: CliWIthdrawOptions) => {
+    // console.log("argv:", argv);
     const { loglevel, ...args } = argv;
     setLevel(loglevel);
     cliWithdraw({ ...args });
@@ -393,7 +400,7 @@ yargs.command({
     },
     symbol: {
       describe: "market symbol e.g SOL-PERP, BTC-PERP, SOL-SQUARE",
-      // alias: "",
+      alias: "S",
       type: "string",
       demandOption: true,
     },
@@ -405,6 +412,7 @@ yargs.command({
     },
   },
   handler: (argv: CliSettleFundsOptions) => {
+    // console.log("argv:", argv);
     const { loglevel, ...args } = argv;
     setLevel(loglevel);
     cliSettleFunds({ ...args });
@@ -449,6 +457,7 @@ yargs.command({
     },
   },
   handler: (argv) => {
+    // console.log("argv:", argv);
     const { loglevel, ...args } = argv;
     setLevel(loglevel);
     cliBalances({ ...args });
@@ -493,17 +502,68 @@ yargs.command({
     },
   },
   handler: (argv: CliPositionsOptions) => {
-    console.log("argv:", argv);
-
+    // console.log("argv:", argv);
     const { loglevel, ...args } = argv;
     setLevel(loglevel);
     cliPositions({ ...args });
   },
 });
 
+// open orders
 yargs.command({
-  command: "list-symbols",
-  describe: "list current market and token symbols",
+  command: "open-orders",
+  describe: "view open orders",
+  builder: {
+    keypair: {
+      describe: "path to keypair",
+      alias: "k",
+      demandOption: true,
+      type: "string",
+    },
+    commitment: {
+      describe: "commitment level",
+      // alias: "",
+      type: "string",
+      choices: ["recent", "processed", "confirmed", "finalized"],
+      default: "confirmed",
+    },
+
+    markets: {
+      describe: "market symbols to get Open Orders for market",
+      alias: "S",
+      type: "array",
+    },
+    cluster: {
+      describe: "Solana cluster to connect to",
+      alias: "c",
+      demandOption: true,
+      type: "string",
+      choices: ["mainnet-beta", "devnet"],
+    },
+    endpoint: {
+      describe: "custom endpoint url",
+      alias: "e",
+      type: "string",
+    },
+    loglevel: {
+      describe: "log level",
+      alias: "l",
+      type: "string",
+      choices: ["error", "info", "debug"],
+    },
+  },
+  handler: (argv: CliOpenOrdersOptions) => {
+    // console.log("argv:", argv);
+    const { loglevel, ...args } = argv;
+    setLevel(loglevel);
+    cliOpenOrders({ ...args });
+  },
+});
+
+// list symbols
+yargs.command({
+  command: "zo-data",
+  describe: "list current market and collateral data",
   builder: {
     keypair: {
       describe: "path to keypair",
@@ -530,9 +590,14 @@ yargs.command({
       alias: "e",
       type: "string",
     },
+    verbose: {
+      alias: "v",
+      type: "boolean",
+    },
   },
-  handler: (argv: CliListSymbolsArg) => {
-    cliListSymbols({ ...argv });
+  handler: (argv: CliZoDataArg) => {
+    // console.log("argv:", argv);
+    cliZoData({ ...argv });
   },
 });
 
@@ -566,18 +631,22 @@ yargs.command({
       alias: "e",
       type: "string",
     },
+    // liquidationCheckInterval
     liquidationCheckInterval: {
       describe: "How often to check for liquidations accross margin accounts",
       alias: "lci",
       type: "number",
       default: 100,
     },
+    // liquidationTolerance
     liquidationTolerance: {
       describe: "how sensitive liquidator is (0.99 recommended)",
       alias: "lt",
       type: "number",
       default: 0.99,
     },
+
+    // maxActiveLiquidations
     maxActiveLiquidations: {
       describe: "Max concurrent liquidations",
       alias: "mal",
@@ -622,6 +691,7 @@ yargs.command({
     },
   },
   handler: (argv: CliLiquidatorOptions) => {
+    // console.log("argv:", argv);
     const { loglevel, ...args } = argv;
     setLevel(loglevel);
     runLiquidator({ ...args });

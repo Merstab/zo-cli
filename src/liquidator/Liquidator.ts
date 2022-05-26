@@ -1,3 +1,4 @@
+// ref: https://github.com/01protocol/ts-liquidator/blob/master/src/Liquidator.ts
 import { PublicKey, SYSVAR_RENT_PUBKEY, Transaction } from "@solana/web3.js";
 import BN from "bn.js";
 import {
@@ -22,7 +23,7 @@ import { Swapper } from "./swapUtils";
 import Decimal from "decimal.js";
 import { UpdateEvents } from "@zero_one/client/dist/cjs/accounts/margin/UpdateEvents";
 import { LiquidatorConfig } from "../types";
-import { logger } from "../logger";
+import { simplelog } from "../logger";
 import { getTxString } from "../helpers";
 export default class Liquidator {
   private liquidatorMarginKey: string = "";
@@ -71,7 +72,7 @@ export default class Liquidator {
         this.liqConfig.liquidationTolerance
       )
     ) {
-      logger.info(
+      simplelog.info(
         `[${liqeeMargin.pubkey.toString()}] Liquidating: ${liqeeMargin.data.authority.toString()}`
       );
       if (liqeeMargin.isBankrupt) {
@@ -83,7 +84,7 @@ export default class Liquidator {
     this.toLiquidate[accountToLiquidate] = null;
     this.activeLiquidations--;
 
-    logger.info(
+    simplelog.info(
       `[${liqeeMargin.pubkey.toString()}] Finished liquidating: ${liqeeMargin.pubkey.toString()}`
     );
   }
@@ -110,7 +111,7 @@ export default class Liquidator {
         );
       }
     } catch (_) {
-      logger.error(_);
+      simplelog.error(_);
     }
     await liqeeMargin.refresh(false);
   }
@@ -120,7 +121,7 @@ export default class Liquidator {
       liqeeMargin.largestWeightedBorrow.symbol
     );
     try {
-      logger.info(
+      simplelog.info(
         `[${liqeeMargin.pubkey.toString()}] Bankrupting ${
           liqeeMargin.largestWeightedBorrow.symbol
         }`
@@ -140,14 +141,14 @@ export default class Liquidator {
         },
       });
 
-      logger.info(
+      simplelog.info(
         `[${liqeeMargin.pubkey.toString()}] Bankruptcy complete for: ${liqeeMargin.pubkey.toString()} tx: ${getTxString(
           tx,
           this.cluster
         )}`
       );
     } catch (_) {
-      logger.error(_);
+      simplelog.error(_);
     }
     await liqeeMargin.refresh(false);
   }
@@ -220,7 +221,7 @@ export default class Liquidator {
       }
     );
 
-    logger.info(
+    simplelog.info(
       `[${margin.pubkey.toString()}] Liquidated spot position ${assetSymbol} for ${quoteSymbol}: ${getTxString(
         tx,
         this.cluster
@@ -356,7 +357,7 @@ export default class Liquidator {
         ],
       }
     );
-    logger.info(
+    simplelog.info(
       `[${margin.pubkey.toString()}] Liquidated Perp ${symbol}: ${getTxString(
         tx,
         this.cluster
@@ -453,7 +454,7 @@ export default class Liquidator {
     const ix = this.getCancelOrdersInstruction(margin, liqeeOo, dexMarket);
     transaction.add(ix);
     const tx = await this.program.provider.send(transaction);
-    logger.info(
+    simplelog.info(
       `[${margin.pubkey.toString()}] Cancelled orders for ${marketInfo} : ${getTxString(
         tx,
         this.cluster
@@ -531,15 +532,15 @@ export default class Liquidator {
    * @private
    */
   private async rebalance() {
-    logger.info("Rebalancing");
+    simplelog.info("Rebalancing");
     while (!this.isBalanced()) {
       for (const position of this.liquidatorMargin.positions) {
         if (position.coins.number != 0) {
           try {
             await this.closePerpPosition(position.marketKey);
           } catch (_) {
-            logger.error("Failed to close perp balance");
-            logger.error(_);
+            simplelog.error("Failed to close perp balance");
+            simplelog.error(_);
           }
         }
       }
@@ -551,14 +552,14 @@ export default class Liquidator {
           try {
             await this.closeSpotBalance(assetSymbol);
           } catch (_) {
-            logger.error("Failed to close spot balance");
-            logger.error(_);
+            simplelog.error("Failed to close spot balance");
+            simplelog.error(_);
           }
         }
       }
       await this.liquidatorMargin.refresh();
     }
-    logger.info("Rebalanced");
+    simplelog.info("Rebalanced");
   }
 
   /**
@@ -583,7 +584,7 @@ export default class Liquidator {
       )
     );
     const tx = await this.program.provider.send(transaction);
-    logger.info(
+    simplelog.info(
       `Closed position ${marketKey} : ${getTxString(tx, this.cluster)}`
     );
   }
@@ -625,7 +626,9 @@ export default class Liquidator {
       transaction.add(ix);
     }
     const tx = await this.program.provider.send(transaction);
-    logger.info(`Rebalanced spot ${symbol} : ${getTxString(tx, this.cluster)}`);
+    simplelog.info(
+      `Rebalanced spot ${symbol} : ${getTxString(tx, this.cluster)}`
+    );
   }
 
   /**
@@ -675,9 +678,13 @@ export default class Liquidator {
       this.checkMargin(margin);
     }
     if (accountsToLiquidateCount !== this.accountsToLiquidate.length) {
-      logger.info(`${this.accountsToLiquidate.length} accounts to liquidate`);
+      simplelog.info(
+        `${this.accountsToLiquidate.length} accounts to liquidate`
+      );
     } else {
-      logger.debug(`${this.accountsToLiquidate.length} accounts to liquidate`);
+      simplelog.debug(
+        `${this.accountsToLiquidate.length} accounts to liquidate`
+      );
     }
   }
 
@@ -696,7 +703,7 @@ export default class Liquidator {
             this.toLiquidate[margin.pubkey.toString()]!.getTime() >
           this.liqConfig.maxUnliquidatedTime
         ) {
-          logger.error(
+          simplelog.error(
             `Account is not liquidated after ${
               this.liqConfig.maxUnliquidatedTime
             } ms. margin key: ${margin.pubkey.toString()}`
@@ -710,12 +717,12 @@ export default class Liquidator {
   }
 
   async launch() {
-    logger.info("[loading liquidator]");
+    simplelog.info("[loading liquidator]");
 
     this.marginsCluster = new MarginsCluster(this.program, this.cluster);
     await this.marginsCluster.launch();
 
-    logger.info("[loaded margins cluster]");
+    simplelog.info("[loaded margins cluster]");
     this.liquidatorMarginKey = (
       await Margin.getMarginKey(
         this.state,
@@ -726,7 +733,7 @@ export default class Liquidator {
 
     this.swapper = new Swapper(this.state, this.program, this.liquidatorMargin);
     this.listen();
-    logger.info("[started liquidation cycle]");
+    simplelog.info("[started liquidation cycle]");
     this.findLiquidatableAccountsAndLiquidate();
     await this.liquidationCycle();
   }

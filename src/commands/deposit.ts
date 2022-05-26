@@ -9,7 +9,7 @@ export const cliDeposit = async ({
   cluster,
   commitment,
   token,
-  size, // string to BN. should multiply by decimal
+  size,
   repayOnly,
   tokenAccount,
 }: CliDepositArg) => {
@@ -32,11 +32,10 @@ export const cliDeposit = async ({
         collateralMint,
         size,
         repayOnly,
-        // tokenAccount ? new PublicKey(tokenAccount) : undefined
-        new PublicKey(tokenAccount)
+        tokenAccount ? new PublicKey(tokenAccount) : undefined
       );
       simplelog.info(
-        `Deposited ${size} ${token} to vault. Transaction Id: ${getTxString(
+        `Deposited ${size} ${token} to vault. \nTransaction Id: ${tx} \nExplorer: ${getTxString(
           tx,
           zoCluster
         )} `

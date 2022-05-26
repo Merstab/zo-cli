@@ -35,12 +35,13 @@ Commands:
   zo-cli settle-funds       settle PnL
   zo-cli balances           check balances and risk
   zo-cli positions          view positions
-  zo-cli list-symbols       list current market and token symbols
+  zo-cli open-orders        view open orders
+  zo-cli zo-data            list current market and collateral data
   zo-cli run-liquidator     run liquidator to liquidate accounts
 
 Options:
-  --help     Show help                                                [boolean]
-  --version  Show version number                                      [boolean]
+  --help     Show help                                                 [boolean]
+  --version  Show version number                                       [boolean]
 
 ```
 

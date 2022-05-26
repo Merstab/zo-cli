@@ -36,10 +36,16 @@ export interface CliCreateMarginArg extends CliBaseArg {}
 
 export interface CliPositionsArg extends CliBaseArg {}
 
-export interface CliListSymbolsArg extends CliBaseArg {}
+export interface CliZoDataArg extends CliBaseArg {
+  verbose: boolean;
+}
 
 export interface CliSettleFundsArg extends CliBaseArg {
   symbol: string;
+}
+
+export interface CliOpenOrdersArg extends CliBaseArg {
+  markets: string[];
 }
 
 export interface CliPlacePerpOrderArg extends CliBaseArg {
@@ -67,8 +73,8 @@ export interface CliDepositArg extends CliBaseArg {
 export interface CliCancelPerpOrderArg extends CliBaseArg {
   symbol: string;
   isLong?: boolean;
-  orderId?: number;
-  clientId?: number;
+  orderId?: string;
+  clientId?: string;
 }
 
 export interface LiquidatorConfig {
@@ -88,21 +94,35 @@ export interface LogLevelOption {
 }
 
 export interface CliBalancesOptions extends LogLevelOption, CliBalancesArg {}
+
+export interface CliBalancesOptions extends LogLevelOption, CliBalancesArg {}
+
 export interface CliPlacePerpOrderOptions
   extends LogLevelOption,
     CliPlacePerpOrderArg {}
+
 export interface CliCancelPerpOrderOptions
   extends LogLevelOption,
     CliCancelPerpOrderArg {}
+
 export interface CliCreateMarginOptions
   extends LogLevelOption,
     CliCreateMarginArg {}
+
 export interface CliDepositOptions extends LogLevelOption, CliDepositArg {}
+
 export interface CliLiquidatorOptions
   extends LogLevelOption,
     CliLiquidatorArgs {}
+
 export interface CliPositionsOptions extends LogLevelOption, CliPositionsArg {}
+
+export interface CliOpenOrdersOptions
+  extends LogLevelOption,
+    CliOpenOrdersArg {}
+
 export interface CliSettleFundsOptions
   extends LogLevelOption,
     CliSettleFundsArg {}
+
 export interface CliWIthdrawOptions extends LogLevelOption, CliWithdrawArg {}

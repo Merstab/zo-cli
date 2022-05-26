@@ -30,13 +30,13 @@ export const cliCancelPerpOrder = async ({
       simplelog.info("Cancelling order...", cancelPerpOrderOptions);
       const tx = await userMargin.cancelPerpOrder(cancelPerpOrderOptions);
       simplelog.info(
-        `\nOrder cancelled.\nTx Id: ${tx}\nExplorer: ${getTxString(
+        `Order cancelled.\n\nTx Id: ${tx}\n\nExplorer: ${getTxString(
           tx,
           zoCluster
         )}`
       );
     } catch (e) {
-      simplelog.error(`error placing order. error: ${e}`);
+      simplelog.error(`error cancelling order. error: ${e}`);
     }
   } else {
     simplelog.error(

@@ -1,4 +1,9 @@
-import { getTxString, loadClient, toPlacePerpOrderOptions } from "../helpers";
+import {
+  getLastOpenOrderForMarket,
+  getTxString,
+  loadClient,
+  toPlacePerpOrderOptions,
+} from "../helpers";
 import { simplelog } from "../logger";
 import { CliPlacePerpOrderArg } from "../types";
 
@@ -15,7 +20,7 @@ export const cliPlacePerpOrder = async ({
   limit,
   clientId,
 }: CliPlacePerpOrderArg) => {
-  const { marginExist, clientMargin, zoCluster } = await loadClient(
+  const { marginExist, clientMargin, zoCluster, provider } = await loadClient(
     cluster,
     keypair,
     commitment,
@@ -40,12 +45,26 @@ export const cliPlacePerpOrder = async ({
 
       const tx = await userMargin.placePerpOrder(placePerpOrderOptions);
 
+      await userMargin.refresh();
+
+      simplelog.info(`Getting Order info...`);
+
+      const order = await getLastOpenOrderForMarket(
+        userMargin,
+        provider.connection,
+        symbol
+      );
+
       simplelog.info(
-        `\nOrder placed. \nTx Id: ${tx} \nExplorer: ${getTxString(
+        `Order placed. \n\nTx Id: ${tx} \n\nExplorer: ${getTxString(
           tx,
           zoCluster
         )}`
       );
+      simplelog.info(`Latest Order`);
+      console.log("===========================");
+
+      console.log(order);
     } catch (e) {
       simplelog.error(`error placing order. error: ${e}`);
     }
